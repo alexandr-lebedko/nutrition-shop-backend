@@ -38,7 +38,7 @@ public class CategoryControllerTest {
     private CategoryService categoryService;
 
     @Test
-    public void create() throws Exception {
+    public void create_whenBodyValid() throws Exception {
         CategoryDto categoryDto = random(CategoryDto.class);
         doReturn(categoryDto).when(categoryService).save(any(CategoryRequest.class));
 
@@ -55,6 +55,22 @@ public class CategoryControllerTest {
                 .andExpect(jsonPath("$.name", is(categoryRequest.getName())));
 
         verify(categoryService, times(1)).save(any(CategoryRequest.class));
+    }
+
+    @Test
+    public void create_whenBodyInvalid() throws Exception {
+        CategoryDto categoryDto = random(CategoryDto.class);
+        doReturn(categoryDto).when(categoryService).save(any(CategoryRequest.class));
+
+        CategoryRequest categoryRequest = new CategoryRequest();
+        categoryRequest.setName("");
+
+        mockMvc.perform(
+                post("/categories")
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .content(objectMapper.writeValueAsString(categoryRequest)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -93,5 +109,21 @@ public class CategoryControllerTest {
                 .andExpect(status().isNotFound());
 
         verify(categoryService, times(1)).update(1L, categoryRequest);
+    }
+
+    @Test
+    public void update_whenBodyInvalid() throws Exception {
+        CategoryDto categoryDto = random(CategoryDto.class);
+        doReturn(categoryDto).when(categoryService).save(any(CategoryRequest.class));
+
+        CategoryRequest categoryRequest = new CategoryRequest();
+        categoryRequest.setName("");
+
+        mockMvc.perform(
+                put("/categories/{id}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .content(objectMapper.writeValueAsString(categoryRequest)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
     }
 }
